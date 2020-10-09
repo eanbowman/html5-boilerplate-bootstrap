@@ -4,15 +4,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - run: sudo apt install bundler -y
+     
       - name: Checkout
         uses: actions/checkout@master
       - name: Install
-        run: bundle install
-      - name: Build
-        run: bundle exec jekyll build
+        run: yarn
       - name: Percy Test
-        uses: percy/snapshot-action@v0.1.0
+        uses: percy/exec-action@v0.1.1
         with:
-          build-directory: "_site/"
+          command: "cypress run"
         env:
           PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
