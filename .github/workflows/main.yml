@@ -5,11 +5,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: sudo apt install bundler -y
-     
+
       - name: Checkout
         uses: actions/checkout@master
       - name: Install
         run: yarn
+
+      - run: which cypress
+
       - name: Percy Test
         uses: percy/exec-action@v0.1.1
         with:
