@@ -14,6 +14,8 @@ jobs:
       run: |
         chmod +x local-instance.sh
         ./local-instance.sh
+        echo "Instance started!"
+        
     - name: Take pre-merge screenshot
       env:
         TEST_URL: http://localhost:7979/
