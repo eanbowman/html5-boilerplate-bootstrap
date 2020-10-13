@@ -25,6 +25,11 @@ jobs:
         cd ~/vdiff
         npm install --save-dev puppeteer
         echo "const puppeteer = require('puppeteer');
+            process.on('uncaughtException', function (err) {
+              console.log('Caught exception: ', err);
+              process.exit(1);
+            });
+
             url = process.env.test_url || 'http://localhost:7979/';
             filename = 'pre-merge.png';
             if ( typeof url !== 'undefined' ) {
@@ -57,6 +62,10 @@ jobs:
         pwd
         ls -alF
         echo "const puppeteer = require('puppeteer');
+            process.on('uncaughtException', function (err) {
+              console.log('Caught exception: ', err);
+              process.exit(1);
+            });
             url = process.env.test_url || 'http://localhost:7979/';
             filename = 'post-merge.png';
             if ( typeof url !== 'undefined' ) {
