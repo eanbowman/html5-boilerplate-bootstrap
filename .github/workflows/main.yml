@@ -34,32 +34,16 @@ jobs:
             filename = 'pre-merge.png';
             if ( typeof url !== 'undefined' ) {
               (async () => {
-                const browser = await puppeteer.launch();
-                const page = await browser.newPage();
-                await () => {
-                  try {
-                    page.goto(url);
-                  } catch(e) {
-                    console.log( e );
-                    process.exit(1);
-                  };
-                }
-                await () => {
-                  try {
-                    page.screenshot({path: filename});
-                  } catch(e) {
-                    console.log( e );
-                    process.exit(1);
-                  };
-                }
+              
+                try {
+                  const browser = await puppeteer.launch();
+                  const page = await browser.newPage();
+                  await page.goto(url);
+                  await page.screenshot({path: filename});
 
-                await () => {
-                  try {
-                    browser.close();
-                  } catch(e) {
-                    console.log( e );
-                    process.exit(1);
-                  };
+                  await browser.close();
+                } catch( e ) {
+                  console.error( e );
                 }
 
               })();
