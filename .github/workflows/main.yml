@@ -14,6 +14,8 @@ jobs:
       run: |
         chmod +x local-instance.sh
         ./local-instance.sh
+        echo "Instance started!"
+        
     - name: Take pre-merge screenshot
       env:
         TEST_URL: http://localhost:7979/
@@ -23,17 +25,23 @@ jobs:
         cd ~/vdiff
         npm install --save-dev puppeteer
         echo "const puppeteer = require('puppeteer');
+        
             url = process.env.test_url || 'http://localhost:7979/';
             filename = 'pre-merge.png';
+            console.log( url );
             if ( typeof url !== 'undefined' ) {
               (async () => {
-                const browser = await puppeteer.launch();
-                const page = await browser.newPage();
-                await page.goto(url);
-                await page.screenshot({path: filename});
+                try {
+                  const browser = await puppeteer.launch();
+                  const page = await browser.newPage();
+                  await page.goto(url);
+                  await page.screenshot({path: filename});
 
-                await browser.close();
-
+                  await browser.close();
+                } catch( e ) {
+                  console.error( e );
+                  process.exit(1);
+                }
               })();
             }
             " > ~/vdiff/vdiff.js
@@ -55,17 +63,25 @@ jobs:
         pwd
         ls -alF
         echo "const puppeteer = require('puppeteer');
+            process.on('uncaughtException', function (err) {
+              console.log('Caught exception: ', err);
+              process.exit(1);
+            });
             url = process.env.test_url || 'http://localhost:7979/';
             filename = 'post-merge.png';
             if ( typeof url !== 'undefined' ) {
               (async () => {
-                const browser = await puppeteer.launch();
-                const page = await browser.newPage();
-                await page.goto(url);
-                await page.screenshot({path: filename});
+                try {
+                  const browser = await puppeteer.launch();
+                  const page = await browser.newPage();
+                  await page.goto(url);
+                  await page.screenshot({path: filename});
 
-                await browser.close();
-
+                  await browser.close();
+                } catch( e ) {
+                  console.error( e );
+                  process.exit(1);
+                }
               })();
             }
             " > ~/vdiff/vdiff.js
