@@ -3,111 +3,111 @@ on: [pull_request]
 
 name: PHPCS Check
 jobs:
-  runPHPCSInspection:
-    name: Run PHPCS inspection
-    runs-on: ubuntu-latest
-    steps:    
-    - uses: actions/checkout@v2
-      with:
-        ref: master
-    - name: Run a local copy of the site
-      run: |
-        chmod +x local-instance.sh
-        ./local-instance.sh
-        echo "Instance started!"
-        
-    - name: Take pre-merge screenshot
-      env:
-        TEST_URL: http://localhost:7979/
-      run: |
-        sudo apt install npm
-        mkdir ~/vdiff
-        cd ~/vdiff
-        npm install --save-dev puppeteer
-        echo "const puppeteer = require('puppeteer');
-            process.on('uncaughtException', function (err) {
-              console.log('Caught exception: ', err);
-              process.exit(1);
-            });
+	runPHPCSInspection:
+		name: Run PHPCS inspection
+		runs-on: ubuntu-latest
+		steps:    
+		- uses: actions/checkout@v2
+			with:
+				ref: master
+		- name: Run a local copy of the site
+			run: |
+				chmod +x local-instance.sh
+				./local-instance.sh
+				echo "Instance started!"
+				
+		- name: Take pre-merge screenshot
+			env:
+				TEST_URL: http://localhost:7979/
+			run: |
+				sudo apt install npm
+				mkdir ~/vdiff
+				cd ~/vdiff
+				npm install --save-dev puppeteer
+				echo "const puppeteer = require('puppeteer');
+				
+						url = process.env.test_url || 'http://localhost:7979/';
+						filename = 'pre-merge.png';
+						console.log( url );
+						if ( typeof url !== 'undefined' ) {
+							(async () => {
+								try {
+									const browser = await puppeteer.launch();
+									const page = await browser.newPage();
+									await page.goto(url);
+									await page.screenshot({path: filename});
 
-            url = process.env.test_url || 'http://localhost:7979/';
-            filename = 'pre-merge.png';
-            if ( typeof url !== 'undefined' ) {
-              (async () => {
-              
-                try {
-                  const browser = await puppeteer.launch();
-                  const page = await browser.newPage();
-                  await page.goto(url);
-                  await page.screenshot({path: filename});
+									await browser.close();
+								} catch( e ) {
+									console.error( e );
+									process.exit(1);
+								}
+							})();
+						}
+						" > ~/vdiff/vdiff.js
+				cat ~/vdiff/vdiff.js
+				node ~/vdiff/vdiff.js
+				echo ""
+				pwd
+				ls -alF
+				echo ""
 
-                  await browser.close();
-                } catch( e ) {
-                  console.error( e );
-                }
+		- uses: actions/checkout@v2
+			with:
+				ref: ${{ github.event.pull_request.head.sha }}  
+		- name: Take post-merge screenshot
+			env:
+				TEST_URL: http://localhost:7979/
+			run: |
+				cd ~/vdiff
+				pwd
+				ls -alF
+				echo "const puppeteer = require('puppeteer');
+						process.on('uncaughtException', function (err) {
+							console.log('Caught exception: ', err);
+							process.exit(1);
+						});
+						url = process.env.test_url || 'http://localhost:7979/';
+						filename = 'post-merge.png';
+						if ( typeof url !== 'undefined' ) {
+							(async () => {
+								try {
+									const browser = await puppeteer.launch();
+									const page = await browser.newPage();
+									await page.goto(url).catch(e) { console.log( e ); process.exit(1); };
+									await page.screenshot({path: filename}).catch(e) { console.log( e ); process.exit(1); };
 
-              })();
-            }
-            " > ~/vdiff/vdiff.js
-        cat ~/vdiff/vdiff.js
-        node ~/vdiff/vdiff.js
-        echo ""
-        pwd
-        ls -alF
-        echo ""
+									await browser.close().catch(e) { console.log( e ); process.exit(1); };
+								} catch( e ) {
+									console.error( e );
+									process.exit(1);
+								}
+							})();
+						}
+						" > ~/vdiff/vdiff.js
+				cat ~/vdiff/vdiff.js
+				node ~/vdiff/vdiff.js
+				echo ""
+				ls -alF
+				echo ""
 
-    - uses: actions/checkout@v2
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}  
-    - name: Take post-merge screenshot
-      env:
-        TEST_URL: http://localhost:7979/
-      run: |
-        cd ~/vdiff
-        pwd
-        ls -alF
-        echo "const puppeteer = require('puppeteer');
-            process.on('uncaughtException', function (err) {
-              console.log('Caught exception: ', err);
-              process.exit(1);
-            });
-            url = process.env.test_url || 'http://localhost:7979/';
-            filename = 'post-merge.png';
-            if ( typeof url !== 'undefined' ) {
-              (async () => {
-                const browser = await puppeteer.launch();
-                const page = await browser.newPage();
-                await page.goto(url).catch(e) { console.log( e ); process.exit(1); };
-                await page.screenshot({path: filename}).catch(e) { console.log( e ); process.exit(1); };
-
-                await browser.close().catch(e) { console.log( e ); process.exit(1); };
-
-              })();
-            }
-            " > ~/vdiff/vdiff.js
-        cat ~/vdiff/vdiff.js
-        node ~/vdiff/vdiff.js
-        echo ""
-        ls -alF
-        echo ""
-
-    - name: Use Imagemagick to compare the two screenshots
-      run: |
-        cd ~/vdiff
-        if sudo apt install imagemagick; then
-          echo "Needed to install imagemagick..."
-        fi
-        echo "Comparing pre/post merge screenshots"
-        if compare pre-merge.png post-merge.png difference.png; then
-          echo "compare succeeded"
-        else
-          echo "compare failed"
-        fi
-        echo ""
-        pwd
-        ls -alF
-        
-    - uses: actions/upload-artifact@v2
-      with:
-        name: pre-merge screenshot
-        path: /home/runner/vdiff/*.png
+		- name: Use Imagemagick to compare the two screenshots
+			run: |
+				cd ~/vdiff
+				if sudo apt install imagemagick; then
+					echo "Needed to install imagemagick..."
+				fi
+				echo "Comparing pre/post merge screenshots"
+				if compare pre-merge.png post-merge.png difference.png; then
+					echo "compare succeeded"
+				else
+					echo "compare failed"
+				fi
+				echo ""
+				pwd
+				ls -alF
+				
+		- uses: actions/upload-artifact@v2
+			with:
+				name: pre-merge screenshot
+				path: /home/runner/vdiff/*.png
